@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export ports=""
-export ID=""
 
 #纯净系统安装aichat
 install_aichat() {
@@ -17,16 +16,14 @@ if command -v docker &>/dev/null; then
 else
     if [[ "$ID" == "centos"* ]]; then
         sudo yum update -y
-        sudo yum install -y yum-utils nginx socat
+        sudo yum install -y yum-utils
         sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
         sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
         sudo systemctl start docker
-        sudo systemctl start nginx
         sudo systemctl enable docker.service
-        sudo systemctl enable nginx
     elif [[ "$ID" == "debian"* ]]; then
-        sudo apt-get update
-        sudo apt-get install ca-certificates curl gnupg nginx socat -y
+        sudo apt-get update -y
+        sudo apt-get install ca-certificates curl gnupg -y
         sudo install -m 0755 -d /etc/apt/keyrings
         curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         echo \
@@ -35,10 +32,9 @@ else
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null        
         sudo apt-get update
         sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-        sudo systemctl enable nginx
     elif [[ "$ID" == "ubuntu"* ]]; then
-        sudo apt-get update
-        sudo apt-get install ca-certificates curl gnupg nginx socat -y
+        sudo apt-get update -y
+        sudo apt-get install ca-certificates curl gnupg -y
         sudo install -m 0755 -d /etc/apt/keyrings
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         sudo chmod a+r /etc/apt/keyrings/docker.gpg
@@ -48,7 +44,6 @@ else
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null        
         sudo apt-get update
         sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-        sudo systemctl enable nginx
     else
         echo "该脚本仅支持 CentOS、Debian 和 Ubuntu"
         exit 1
@@ -257,6 +252,26 @@ for folder in "${folders[@]}"; do
         mkdir "$folder"
     fi
 done
+
+#检测系统类型
+if [[ -f /etc/os-release ]]; then
+    . /etc/os-release
+fi
+
+#安装nginx
+if [[ "$ID" == "centos"* ]]; then
+    sudo yum install -y nginx socat
+    sudo systemctl start nginx
+    sudo systemctl enable nginx
+elif [[ "$ID" == "debian"* ]]; then
+    sudo apt-get install nginx socat -y
+    sudo systemctl enable nginx
+elif [[ "$ID" == "ubuntu"* ]]; then
+    sudo apt-get install nginx socat -y
+    sudo systemctl enable nginx
+else
+    exit 1
+fi
 
 #安装acme
 if command -v /root/.acme.sh/acme.sh &> /dev/null
