@@ -323,6 +323,7 @@ include /etc/nginx/modules-enabled/*.conf;
 
 events {
     worker_connections 1024;
+    # multi_accept on;
 }
 
 http {
@@ -336,8 +337,8 @@ http {
         listen 443 ssl;
         server_name $domain;
 
-        if ($server_port !~ 443){
-            rewrite ^(/.*)\$ https://\$host\$1 permanent;
+        if (\$server_port !~ 443){
+            rewrite ^(/.*)$ https://\$host\$1 permanent;
         }
 
         ssl_certificate    /etc/Acme_SSL/chat_cert/chat.crt;
@@ -357,13 +358,13 @@ http {
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             proxy_set_header REMOTE-HOST \$remote_addr;
             proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Connection \$connection_upgrade;
             proxy_http_version 1.1;
 
-            add_header X-Cache $upstream_cache_status;
+            add_header X-Cache \$upstream_cache_status;
 
             set \$static_filerDMgmXdG 0;
-            if ( \$uri ~* "\.(gif|png|jpg|css|js|woff|woff2)\$" ) {
+            if ( \$uri ~* "\.(gif|png|jpg|css|js|woff|woff2)$" ) {
                 set \$static_filerDMgmXdG 1;
                 expires 1m;
             }
@@ -377,8 +378,8 @@ http {
         listen 443 ssl;
         server_name $domain1;
 
-        if ($server_port !~ 443){
-            rewrite ^(/.*)\$ https://\$host\$1 permanent;
+        if (\$server_port !~ 443){
+            rewrite ^(/.*)$ https://\$host\$1 permanent;
         }
 
         ssl_certificate    /etc/Acme_SSL/console_cert/console.crt;
@@ -404,11 +405,11 @@ http {
             add_header X-Cache \$upstream_cache_status;
 
             set \$static_filerDMgmXdG 0;
-            if ( \$uri ~* "\.(gif|png|jpg|css|js|woff|woff2)\$" ) {
-                set $static_filerDMgmXdG 1;
+            if ( \$uri ~* "\.(gif|png|jpg|css|js|woff|woff2)$" ) {
+                set \$static_filerDMgmXdG 1;
                 expires 1m;
             }
-            if ( $static_filerDMgmXdG = 0 ) {
+            if ( \$static_filerDMgmXdG = 0 ) {
                 add_header Cache-Control no-cache;
             }
         }
