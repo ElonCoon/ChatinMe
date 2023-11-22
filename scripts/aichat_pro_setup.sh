@@ -316,80 +316,103 @@ chmod +r /etc/Acme_SSL/console_cert/console.key
 
 # 将新的内容写入到nginx.conf文件中，同时替换变量
 cat << EOF >> /etc/nginx/nginx.conf
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
 events {
     worker_connections 1024;
 }
 
 http {
-    gzip on;
-    gzip_http_version 1.1;
-    gzip_comp_level 6;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-    gzip_vary on;
-    gzip_proxied any;
-    gzip_buffers 16 8k;
-    gzip_disable "MSIE [1-6]\.(?!.*SV1)";
-    proxy_buffering off;
-
-    server {
-        listen 80;
-        rewrite ^(.*)$ https://\$host\$1 permanent;
+    map \$http_upgrade \$connection_upgrade {
+        default upgrade;
+        ''      close;
     }
 
     server {
+        listen 80;
         listen 443 ssl;
         server_name $domain;
 
-        ssl_protocols TLSv1.2 TlSv1.3;
-        ssl_ciphers 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:!aNULL';
+        if ($server_port !~ 443){
+            rewrite ^(/.*)\$ https://\$host\$1 permanent;
+        }
+
+        ssl_certificate    /etc/Acme_SSL/chat_cert/chat.crt;
+        ssl_certificate_key    /etc/Acme_SSL/chat_cert/chat.key;
+        ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
+        ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
         ssl_prefer_server_ciphers on;
-        ssl_session_cache shared:SSL:20m;
-        ssl_session_timeout 1d;
-        ssl_stapling on;
-        ssl_stapling_verify on;
-
-        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline'";
-
-        ssl_certificate /etc/Acme_SSL/chat_cert/chat.crt;
-        ssl_certificate_key /etc/Acme_SSL/chat_cert/chat.key;
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        add_header Strict-Transport-Security "max-age=31536000";
+        error_page 497  https://\$host\$request_uri;
 
         location / {
             proxy_pass http://127.0.0.1:$ports;
             proxy_set_header Host \$host;
             proxy_set_header X-Real-IP \$remote_addr;
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
+            proxy_set_header REMOTE-HOST \$remote_addr;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_http_version 1.1;
+
+            add_header X-Cache $upstream_cache_status;
+
+            set \$static_filerDMgmXdG 0;
+            if ( \$uri ~* "\.(gif|png|jpg|css|js|woff|woff2)\$" ) {
+                set \$static_filerDMgmXdG 1;
+                expires 1m;
+            }
+            if ( \$static_filerDMgmXdG = 0 ) {
+                add_header Cache-Control no-cache;
+            }
         }
     }
-
-    server {
+     server {
+        listen 80;
         listen 443 ssl;
         server_name $domain1;
 
-        ssl_protocols TLSv1.2 TlSv1.3;
-        ssl_ciphers 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:!aNULL';
+        if ($server_port !~ 443){
+            rewrite ^(/.*)\$ https://\$host\$1 permanent;
+        }
+
+        ssl_certificate    /etc/Acme_SSL/console_cert/console.crt;
+        ssl_certificate_key    /etc/Acme_SSL/console_cert/console.key;
+        ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
+        ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
         ssl_prefer_server_ciphers on;
-        ssl_session_cache shared:SSL:20m;
-        ssl_session_timeout 1d;
-        ssl_stapling on;
-        ssl_stapling_verify on;
-
-        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline'";
-
-        ssl_certificate /etc/Acme_SSL/console_cert/console.crt;
-        ssl_certificate_key /etc/Acme_SSL/console_cert/console.key;
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        add_header Strict-Transport-Security "max-age=31536000";
+        error_page 497  https://\$host\$request_uri;
 
         location / {
             proxy_pass http://127.0.0.1:8080;
             proxy_set_header Host \$host;
             proxy_set_header X-Real-IP \$remote_addr;
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
+            proxy_set_header REMOTE-HOST \$remote_addr;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection \$connection_upgrade;
+            proxy_http_version 1.1;
+
+            add_header X-Cache \$upstream_cache_status;
+
+            set \$static_filerDMgmXdG 0;
+            if ( \$uri ~* "\.(gif|png|jpg|css|js|woff|woff2)\$" ) {
+                set $static_filerDMgmXdG 1;
+                expires 1m;
+            }
+            if ( $static_filerDMgmXdG = 0 ) {
+                add_header Cache-Control no-cache;
+            }
         }
     }
-   
 }
 EOF
 
