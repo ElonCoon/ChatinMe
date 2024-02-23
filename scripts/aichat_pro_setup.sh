@@ -57,7 +57,7 @@ touch /etc/docker/docker-compose.yml
 
 #下载docker-compose.yml
 echo "下载docker-compose.yml中..."
-curl -o /etc/docker/docker-compose.yml https://raw.githubusercontent.com/Nanjiren01/AIChatWeb/pro-v0.11.2/docker-compose.yml
+curl -o /etc/docker/docker-compose.yml https://raw.githubusercontent.com/Nanjiren01/AIChatWeb/pro-v0.11.3/docker-compose.yml
 
 #配置AIChat专业版许可证
 echo "****************** 配置AIChat专业版许可证 ******************"
