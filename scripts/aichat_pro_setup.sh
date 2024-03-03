@@ -57,7 +57,7 @@ touch /etc/docker/docker-compose.yml
 
 #下载docker-compose.yml
 echo "下载docker-compose.yml中..."
-curl -o /etc/docker/docker-compose.yml https://raw.githubusercontent.com/Nanjiren01/AIChatWeb/pro-v0.11.3/docker-compose.yml
+curl -o /etc/docker/docker-compose.yml https://raw.githubusercontent.com/Nanjiren01/AIChatWeb/pro/docker-compose.yml
 
 #配置AIChat专业版许可证
 echo "****************** 配置AIChat专业版许可证 ******************"
@@ -92,9 +92,9 @@ echo "**************** 成功配置AIChat专业版许可证 ******************"
 #配置超级管理员
 echo "######################## 配置超级管理员 ############################"
 while true; do
-    echo "仅支持字母和数字，长度应在4到20之间，并且不能以数字开头。"
+    echo "仅支持字母和数字，长度应在3到20之间，并且不能以数字开头。"
     read -p "请输入超级用户的账户名称： " SUPER_USERNAME
-    regex='^[A-Za-z][A-Za-z0-9]{4,19}'
+    regex='^[A-Za-z][A-Za-z0-9]{3,19}'
     if [[ $SUPER_USERNAME =~ $regex ]]; then
         echo "超级管理员账户名称有效"
         break
