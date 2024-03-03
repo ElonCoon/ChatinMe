@@ -216,10 +216,6 @@ echo "======================================================================"
 echo "请检查上述配置是否正确，如果确认无误，请按 Enter 继续，或按 Ctrl+C 取消。"
 read
 
-#配置和登录AIChat专业版授权私有库
-echo '{ "insecure-registries": ["harbor.nanjiren.online:8099"] }' | sudo tee /etc/docker/daemon.json
-systemctl restart docker
-
 echo "****************** 配置AIChat专业版授权私有库账户 ******************"
 while true; do
     echo "请输入AIChat专业版授权私有库的授权用户名："
@@ -228,7 +224,7 @@ while true; do
     read -s -p "授权密码： " DOCKER_REGISTRY_PASSWORD
 
     echo "正在登录到AIChat专业版的Docker私有仓库..."
-    if docker login -u $DOCKER_REGISTRY_USERNAME -p $DOCKER_REGISTRY_PASSWORD http://harbor.nanjiren.online:8099; then
+    if docker login -u $DOCKER_REGISTRY_USERNAME -p $DOCKER_REGISTRY_PASSWORD https://harbor.nanjiren.online; then
         break
     else
         echo "AIChat专业版私有库登录失败，请重新输入您的账户和密码。"
